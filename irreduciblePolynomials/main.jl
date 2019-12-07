@@ -1,16 +1,27 @@
 include("densityComputation.jl")
-
-using Primes
-
-function calculateDensity(df)
-    density = sum(df[!, 4]) / DataFrames.nrow(df)
-    @printf("Density: %f\n\n", density)
-end
+import .DensityComputation
+using DataFrames, Printf, CSV
 
 function main()
-    df = irreduciblePolynomials(3, 3)
-    # print(df)
-    # calculateDensity(df)
+    # Approximates the Asymptotic density of irreducible polynomials in all
+    # integer polynomials. This is done by setting a number representing both
+    # maxDegree and maxConstant to infinity, but
+    # practically to 20.
+    irrIntPolyBruteDf = DataFrames.DataFrame(maxDegree = [0],
+                                             maxConstant = [0],
+                                             numPolynomials = [1],
+                                             numIrreducibles = [1],
+                                             density = [1.0])
+
+    for i in range(1, step = 1, stop = 15)
+        @printf("maxDegree, maxConstant = %0.0f\n", i)
+        thisDf = DensityComputation.irrIntPolyBrute(i, i)
+        irrIntPolyBruteDf = join(irrIntPolyBruteDf, thisDf, kind = :outer,
+                            on = intersect(names(irrIntPolyBruteDf), names(thisDf)))
+    end
+    print(irrIntPolyBruteDf)
+    CSV.write("irrIntPolyBrute.csv", irrIntPolyBruteDf, writeheader = true)
+    
 
 
     # for maxDegree in range(1, step = 1, stop = 5)
